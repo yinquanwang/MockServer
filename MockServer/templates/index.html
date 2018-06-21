@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Mock Server</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename = 'css/common.css') }}" rel="stylesheet">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+
+</head>
+<body>
+<!-- Modal -->
+<div class="modal fade" id="add_project" tabindex="-1" style="margin-top: 100px">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add New Project</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="project_name" class="col-sm-3 control-label">Project Name:</label>
+                        <div class="col-sm-8">
+                            <input type="text" value="" name="project_name" class="form-control" id="project_name"
+                                   placeholder="You Project Name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="desc" class="col-sm-3 control-label">Descriptions:</label>
+                        <div class="col-sm-8">
+                            <input type="text" value="" class="form-control" id="desc" name="desc"
+                                   placeholder="Description for you project">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="post_project('/projects/')">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add_mock_api" tabindex="-1" style="margin-top: 100px">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Add Mock API</h4>
+            </div>
+            <div class="modal-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="project" class="col-sm-3 control-label">Project:</label>
+                        <div class="col-sm-8">
+                            <select class="form-control" id="project">
+                                <option value="">请选择</option>
+                                {% for foo in p %}
+                                    <option value="{{ foo.id }}">{{ foo.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="api_name" class="col-sm-3 control-label">Name:</label>
+                        <div class="col-sm-8">
+                            <input type="text" value="" name="api_name" class="form-control" id="api_name"
+                                   placeholder="You Mock Api Name">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="url" class="col-sm-3 control-label">Api Url:</label>
+                        <div class="col-sm-8">
+                            <input type="text" value="" class="form-control" id="url" name="url"
+                                   placeholder="Url for you mock api">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="url" class="col-sm-3 control-label">Method:</label>
+                        <div class="col-sm-3">
+                            <select class="form-control" id="method">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-warning" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="post_mock('/mocks/')">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<nav class="navbar navbar-inverse navbar-fixed-top" style="background: #495060">
+    <div class="container">
+        <div class="navbar-header">
+            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                    aria-expanded="false" aria-controls="navbar">
+            </button>
+            <a href="/index/" class="navbar-brand" style="color: rosybrown" title="首页">Mock Server</a>
+        </div>
+
+        <div id="navbar" class="navbar-collapse collapse">
+            <form class="navbar-form navbar-left" method="GET" action="/mocks/">
+                <div class="form-group">
+                    <input type="text" placeholder="Search Mock API" name="api_name" value="" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+            <ul class="nav navbar-nav">
+                <li><a style="cursor: pointer" data-toggle="modal" data-target="#add_mock_api" title="添加mock接口">+ Mock API</a></li>
+                <li><a style="cursor: pointer" data-toggle="modal" data-target="#add_project" title="添加项目">+ Project</a></li>
+            </ul>
+
+        </div>
+    </div>
+</nav>
+
+<div class="container" style="margin-top: 100px">
+    {% for foo in p %}
+        <h1 data-toggle="collapse" data-target="#collapse_project_{{ foo.id }}"
+            aria-controls="collapse_project_{{ foo.id }}"
+            style="cursor: pointer">{{ foo.name }}
+            <small>&nbsp;&nbsp;{{ foo.desc }}</small>
+        </h1>
+
+        <div id="collapse_project_{{ foo.id }}">
+        {% for moo in m %}
+            {% if moo.project_id == foo.id %}
+                {% if moo.method|lower == 'post' %}
+                    <div class="block block_post">
+                    <span class="block-method block_method_post block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ moo.id }}'); make_editor('code_{{ moo.id }}')">POST</span>
+                {% elif moo.method|lower == 'get' %}
+                    <div class="block block_get">
+                    <span class="block-method block_method_get block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ moo.id }}'); make_editor('code_{{ moo.id }}')">GET</span>
+                {% elif moo.method|lower == 'put' %}
+                    <div class="block block_put">
+                    <span class="block-method block_method_put block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ moo.id }}'); make_editor('code_{{ moo.id }}')">PUT</span>
+                {% elif moo.method|lower == 'delete' %}
+                    <div class="block block_delete">
+                    <span class="block-method block_method_delete block_method_color"
+                          onclick="collapse_api('#collapse_api_{{ moo.id }}'); make_editor('code_{{ moo.id }}')">DELETE</span>
+
+                {% endif %}
+
+            <span class="block-method block_url">{{ moo.url }}</span>
+            <span class="block-summary-description">{{ moo.name }}</span>
+            <button class="btn btn-primary" onclick="put_mock_api('/mocks/{{ moo.id }}/')">Save</button>
+            <button class="btn btn-danger" style="margin-left: 5px" onclick="del_mock_api('/mocks/{{ moo.id }}/')">Del
+            </button>
+            </div>
+                <div class="block_body collapse" id="collapse_api_{{ moo.id }}">
+<pre id="code_{{ moo.id }}" class="ace_editor" style="min-height: 400px">
+<textarea>
+{{ moo.body }}
+</textarea>
+</pre>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endfor %}
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.6/ext-language_tools.js"></script>
+    <script src="https://cdn.bootcss.com/jquery/1.12.4/jquery.min.js"></script>
+    <script src="https://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename = 'js/common.js') }}"></script>
+
+    <script>
+        editor = null;
+
+        function make_editor(id) {
+            editor = ace.edit(id);
+            init_acs('json', 'monokai', editor);
+        }
+
+        function del_mock_api(url) {
+            $.ajax({
+                type: 'delete',
+                url: url,
+                success: function (data) {
+                    response = JSON.parse(data);
+                    if (response.msg === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert(data)
+                    }
+                },
+                error: function () {
+                    alert('可能是潜在的bug')
+                }
+            });
+        }
+
+        function put_mock_api(url) {
+            var data = editor.session.getValue();
+            $.ajax({
+                type: 'put',
+                url: url,
+                data: JSON.stringify(data),
+                contentType: "application/json",
+                success: function (data) {
+                    response = JSON.parse(data);
+                    if (response.msg === 'success') {
+                        window.location.reload();
+                    } else {
+                        alert(data)
+                    }
+                },
+                error: function () {
+                    alert('可能是潜在的bug')
+                }
+            });
+        }
+    </script>
+</body>
+</html>

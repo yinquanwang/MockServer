@@ -1,0 +1,7 @@
+Flask_Migrate==2.1.1
+alembic==0.9.9
+SQLAlchemy==1.2.7
+Flask_SQLAlchemy==2.3.2
+Flask==1.0.2
+Flask_Script==2.0.6
+mysql-connector==2.1.6
