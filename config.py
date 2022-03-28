@@ -6,7 +6,7 @@ SECRET_KEY = 'you-will-never-guess'
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 
 USERNAME = 'root'
-PASSWORD = 'lcc123456'
+PASSWORD = '123456'
 HOST = '127.0.0.1'
 DB = 'MockServer'
 
